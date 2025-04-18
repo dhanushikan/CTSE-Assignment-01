@@ -28,6 +28,19 @@ public class ProductController {
     @ResponseStatus(HttpStatus.OK)
     public List<ProductResponse> getAllProducts() {
         return productService.getAllProducts();
+        //To test02 CI/CD pipeline
+        //To test03 CI/CD pipeline
 
+    }
+
+    @GetMapping("/ping")
+    @ResponseStatus(HttpStatus.OK)
+    public String testConnection() {
+        try {
+            long count = productService.getProductCount();
+            return "✅ Connected to MongoDB. Product count: " + count;
+        } catch (Exception e) {
+            return "❌ Failed to connect to MongoDB: " + e.getMessage();
+        }
     }
 }

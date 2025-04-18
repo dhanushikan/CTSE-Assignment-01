@@ -40,4 +40,8 @@ public class ProductService {
         // This is just a placeholder for the actual implementation
         // You would typically fetch the products from the repository and return them
     }
+
+    public long getProductCount() {
+        return productRepository.count();
+    }
 }
