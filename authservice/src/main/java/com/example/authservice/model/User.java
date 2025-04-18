@@ -1,28 +1,23 @@
 package com.example.authservice.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Table;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name = "app_user")  // Renaming the table to avoid conflicts with the 'USER' keyword
+@Document(collection = "app_user")  // MongoDB collection name (optional, can be changed to whatever you want)
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;  // Automatically generates the ID for the User entity
-    
+    private String id;  // MongoDB uses String (ObjectId) by default for IDs
+
     private String username;
     private String password;
 
     // Getters and setters
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

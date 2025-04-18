@@ -4,8 +4,6 @@ import com.example.authservice.model.User;
 import com.example.authservice.repository.UserRepository;
 import com.example.authservice.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,30 +18,19 @@ public class AuthController {
 
     // POST /api/auth/signup
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody User user) {
-        // Save the user in the repository
+    public String signup(@RequestBody User user) {
         userRepository.save(user);
-
-        // Return response with 201 Created status
-        return ResponseEntity.status(HttpStatus.CREATED).body("User created successfully!");
+        return "User created successfully!";
     }
 
     // POST /api/auth/login
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody User user) {
-        // Find user by username
+    public String login(@RequestBody User user) {
         User existingUser = userRepository.findByUsername(user.getUsername());
-        
-        // Check if user exists and passwords match
         if (existingUser != null && existingUser.getPassword().equals(user.getPassword())) {
-            // Generate JWT token for the user
             String token = jwtUtil.generateToken(user.getUsername());
-            
-            // Return token in the response with 200 OK status
-            return ResponseEntity.ok("Bearer " + token);
+            return "Bearer " + token;
         }
-
-        // Return 401 Unauthorized if credentials are invalid
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials!");
+        return "Invalid credentials!";
     }
 }
