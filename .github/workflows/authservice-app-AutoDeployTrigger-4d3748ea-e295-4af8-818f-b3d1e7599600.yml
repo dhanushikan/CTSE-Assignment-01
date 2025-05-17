@@ -1,0 +1,48 @@
+name: Trigger auto deployment for authservice-app
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ userAuthorization-service ]
+    paths:
+    - '**'
+    - '.github/workflows/authservice-app-AutoDeployTrigger-4d3748ea-e295-4af8-818f-b3d1e7599600.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:      
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write #This is required for requesting the OIDC JWT Token
+      contents: read #Required when GH token is used to authenticate with private repo
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AUTHSERVICEAPP_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AUTHSERVICEAPP_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AUTHSERVICEAPP_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}/authservice
+          _dockerfilePathKey_: _dockerfilePath_
+          registryUrl: docker.io
+          registryUsername: ${{ secrets.AUTHSERVICEAPP_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.AUTHSERVICEAPP_REGISTRY_PASSWORD }}
+          containerAppName: authservice-app
+          resourceGroup: ctse-assi1
+          imageToBuild: dhanushikan/authservice-app:${{ github.sha }}
+          _buildArgumentsKey_: |
+            _buildArgumentsValues_
+
+
