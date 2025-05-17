@@ -1,9 +1,9 @@
 package com.ctse.microservices.product.repository;
 
 import com.ctse.microservices.product.model.Product;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ProductRepository extends MongoRepository<Product, String> {
-    // Custom query methods can be defined here if needed
-    // For example, findByCategoryId(String categoryId);
+public interface ProductRepository extends JpaRepository<Product, Long> {
+    // Custom query methods here if needed
 }
+
