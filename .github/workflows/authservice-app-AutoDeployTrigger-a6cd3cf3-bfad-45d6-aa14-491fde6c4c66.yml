@@ -2,28 +2,30 @@ name: Trigger auto deployment for authservice-app
 
 # When this action will be executed
 on:
-  # Automatically trigger it when detected changes in repo
+  # Automatically trigger it when changes are pushed to userAuthorization-service branch
   push:
     branches: 
-      [ userAuthorization-service ]
+      - userAuthorization-service  # Specify your branch here
     paths:
-    - '**'
-    - '.github/workflows/authservice-app-AutoDeployTrigger-a6cd3cf3-bfad-45d6-aa14-491fde6c4c66.yml'
+      - '**'  # Trigger for any change in the repository
+      - '.github/workflows/authservice-app-AutoDeployTrigger-a6cd3cf3-bfad-45d6-aa14-491fde6c4c66.yml'  # Adjust path to your workflow file
 
-  # Allow manual trigger 
+  # Allow manual trigger
   workflow_dispatch:      
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     permissions: 
-      id-token: write #This is required for requesting the OIDC JWT Token
-      contents: read #Required when GH token is used to authenticate with private repo
+      id-token: write  # This is required for requesting the OIDC JWT Token
+      contents: read   # Required when GH token is used to authenticate with private repo
 
     steps:
+      # Step 1: Checkout the code
       - name: Checkout to the branch
         uses: actions/checkout@v2
 
+      # Step 2: Azure Login
       - name: Azure Login
         uses: azure/login@v1
         with:
@@ -31,16 +33,27 @@ jobs:
           tenant-id: ${{ secrets.AUTHSERVICEAPP_AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AUTHSERVICEAPP_AZURE_SUBSCRIPTION_ID }}
 
-      - name: Build and push container image to registry
+      # Step 3: Build and Push Docker Image to Docker Hub
+      - name: Build and Push Docker image
+        run: |
+          # Log in to Docker Hub
+          echo ${{ secrets.AUTHSERVICEAPP_REGISTRY_PASSWORD }} | docker login docker.io -u ${{ secrets.AUTHSERVICEAPP_REGISTRY_USERNAME }} --password-stdin
+          
+          # Build Docker image for the platform (amd64 and arm64)
+          docker buildx build --platform linux/amd64,linux/arm64 -t dhanushikan/authservice-app:${{ github.sha }} .
+
+          # Push Docker image to Docker Hub
+          docker push dhanushikan/authservice-app:${{ github.sha }}
+
+      # Step 4: Deploy to Azure Container Apps
+      - name: Deploy to Azure Container Apps
         uses: azure/container-apps-deploy-action@v2
         with:
           appSourcePath: ${{ github.workspace }}
-          _dockerfilePathKey_: ./authservice/Dockerfile
+          dockerfilePath: ./authservice/Dockerfile  # Specify the path to your Dockerfile
           registryUrl: docker.io
           registryUsername: ${{ secrets.AUTHSERVICEAPP_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.AUTHSERVICEAPP_REGISTRY_PASSWORD }}
           containerAppName: authservice-app
           resourceGroup: ctse-assi1
-          imageToBuild: dhanushikan/authservice-app:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
+          imageToBuild: dhanushikan/authservice-app:${{ github.sha }}  # Use the latest commit hash as the tag
